@@ -1,0 +1,105 @@
+# =============================================================================
+# Temporal Dynamic Configuration
+# =============================================================================
+# These settings can be changed without restarting the Temporal server.
+# Temporal watches this file for changes and applies them automatically.
+#
+# Format:
+#   setting.name:
+#     - value: <value>
+#       constraints: {}          # applies to all namespaces
+#     - value: <value>
+#       constraints:
+#         namespace: "my-ns"     # applies only to specific namespace
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# History Service Configuration
+# ---------------------------------------------------------------------------
+
+# Maximum number of events in a single workflow history
+# Default: 50000. Increase if you have complex workflows with many steps.
+history.maximumSignalsPerExecution:
+  - value: 10000
+    constraints: {}
+
+# Cache size for workflow history (per shard)
+history.historyMaxAutoResetPoints:
+  - value: 20
+    constraints: {}
+
+# ---------------------------------------------------------------------------
+# Matching Service Configuration  
+# ---------------------------------------------------------------------------
+
+# Maximum number of tasks in a single task queue partition
+matching.numTaskqueueReadPartitions:
+  - value: 5
+    constraints: {}
+
+matching.numTaskqueueWritePartitions:
+  - value: 5
+    constraints: {}
+
+# ---------------------------------------------------------------------------
+# Frontend Service Configuration
+# ---------------------------------------------------------------------------
+
+# Rate limiting for frontend API
+frontend.rps:
+  - value: 2400
+    constraints: {}
+
+frontend.namespaceRPS:
+  - value: 2400
+    constraints: {}
+
+# Max page size for list operations (visibility queries)
+frontend.visibilityMaxPageSize:
+  - value: 1000
+    constraints: {}
+
+# ---------------------------------------------------------------------------
+# Workflow Execution Limits
+# ---------------------------------------------------------------------------
+
+# Maximum payload size (bytes) - default 2MB
+limit.maxIDLength:
+  - value: 1000
+    constraints: {}
+
+limit.blobSize.error:
+  - value: 2097152   # 2MB
+    constraints: {}
+
+limit.blobSize.warn:
+  - value: 524288    # 512KB
+    constraints: {}
+
+# ---------------------------------------------------------------------------
+# Archival Configuration (optional)
+# ---------------------------------------------------------------------------
+# Enable if you want to archive completed workflow histories
+# Useful for compliance and long-term storage
+
+# system.archivalStatus:
+#   - value: "enabled"
+#     constraints: {}
+
+# ---------------------------------------------------------------------------
+# Advanced Visibility (SQL-based)
+# ---------------------------------------------------------------------------
+
+# Enable standard visibility on SQL databases
+system.enableActivityEagerExecution:
+  - value: true
+    constraints: {}
+
+# ---------------------------------------------------------------------------
+# Worker Configuration
+# ---------------------------------------------------------------------------
+
+# Controls internal system workers
+worker.enableScheduler:
+  - value: true
+    constraints: {}

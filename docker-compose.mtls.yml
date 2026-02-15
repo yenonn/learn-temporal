@@ -1,0 +1,61 @@
+# =============================================================================
+# Docker Compose Override: mTLS Configuration
+# =============================================================================
+# Usage: docker compose -f docker-compose.yml -f docker-compose.mtls.yml up -d
+#
+# Prerequisites:
+#   Generate certificates first:
+#     mkdir -p certs
+#     # Use your existing cert-manager/SPIFFE setup or generate manually:
+#     openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 \
+#       -nodes -keyout certs/ca.key -out certs/ca.pem \
+#       -subj "/CN=Temporal CA"
+#     openssl req -newkey rsa:4096 -nodes \
+#       -keyout certs/server.key -out certs/server.csr \
+#       -subj "/CN=temporal"
+#     openssl x509 -req -in certs/server.csr \
+#       -CA certs/ca.pem -CAkey certs/ca.key \
+#       -CAcreateserial -out certs/server.pem -days 365
+#     openssl req -newkey rsa:4096 -nodes \
+#       -keyout certs/client.key -out certs/client.pem \
+#       -subj "/CN=temporal-client"
+#     openssl x509 -req -in certs/client.pem \
+#       -CA certs/ca.pem -CAkey certs/ca.key \
+#       -CAcreateserial -out certs/client.pem -days 365
+# =============================================================================
+
+version: "3.8"
+
+services:
+  temporal:
+    environment:
+      # Internode mTLS
+      - TEMPORAL_TLS_SERVER_CERT=/etc/temporal/certs/server.pem
+      - TEMPORAL_TLS_SERVER_KEY=/etc/temporal/certs/server.key
+      - TEMPORAL_TLS_SERVER_CA_CERT=/etc/temporal/certs/ca.pem
+      # Frontend mTLS (client connections)
+      - TEMPORAL_TLS_FRONTEND_CERT=/etc/temporal/certs/server.pem
+      - TEMPORAL_TLS_FRONTEND_KEY=/etc/temporal/certs/server.key
+      - TEMPORAL_TLS_CLIENT1_CA_CERT=/etc/temporal/certs/ca.pem
+      - TEMPORAL_TLS_REQUIRE_CLIENT_AUTH=true
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+      - ./certs:/etc/temporal/certs:ro
+
+  temporal-ui:
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_TLS_CA_PATH=/etc/temporal/certs/ca.pem
+      - TEMPORAL_TLS_CERT_PATH=/etc/temporal/certs/client.pem
+      - TEMPORAL_TLS_KEY_PATH=/etc/temporal/certs/client.key
+    volumes:
+      - ./certs:/etc/temporal/certs:ro
+
+  temporal-admin-tools:
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_TLS_CA=/etc/temporal/certs/ca.pem
+      - TEMPORAL_TLS_CERT=/etc/temporal/certs/client.pem
+      - TEMPORAL_TLS_KEY=/etc/temporal/certs/client.key
+    volumes:
+      - ./certs:/etc/temporal/certs:ro

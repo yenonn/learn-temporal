@@ -1,0 +1,29 @@
+# =============================================================================
+# Prometheus Configuration for Temporal
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  # Temporal Server metrics
+  - job_name: "temporal-server"
+    static_configs:
+      - targets: ["temporal:9090"]
+        labels:
+          service: "temporal-server"
+    metrics_path: /metrics
+
+  # PostgreSQL metrics (if using postgres-exporter)
+  # - job_name: "postgresql"
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+
+  # Your application workers (add your worker endpoints here)
+  # - job_name: "temporal-workers"
+  #   static_configs:
+  #     - targets: ["worker-1:9091", "worker-2:9091"]
+  #       labels:
+  #         service: "application-worker"
