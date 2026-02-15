@@ -1,6 +1,33 @@
+# Environment variables
 .env
+.env.*
+!.env.example
+
+# TLS/mTLS certificates
 certs/
 *.key
 *.pem
 *.csr
 *.srl
+*.crt
+*.p12
+*.pfx
+
+# Docker persistent data
+docker-data/
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
