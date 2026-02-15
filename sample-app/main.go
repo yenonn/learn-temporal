@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
+	"sync"
 	"syscall"
 
 	"go.temporal.io/sdk/client"
@@ -16,6 +18,15 @@ import (
 const taskQueue = "order-processing-queue"
 
 func main() {
+	numWorkers := 1
+	if v := os.Getenv("NUM_WORKERS"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 {
+			log.Fatalf("Invalid NUM_WORKERS value: %s", v)
+		}
+		numWorkers = n
+	}
+
 	c, err := client.Dial(client.Options{
 		HostPort: "localhost:7233",
 	})
@@ -24,12 +35,13 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, taskQueue, worker.Options{})
-
-	w.RegisterWorkflow(workflow.OrderWorkflow)
-
-	activities := &activity.Activities{}
-	w.RegisterActivity(activities)
+	workers := make([]worker.Worker, numWorkers)
+	for i := range workers {
+		w := worker.New(c, taskQueue, worker.Options{})
+		w.RegisterWorkflow(workflow.OrderWorkflow)
+		w.RegisterActivity(&activity.Activities{})
+		workers[i] = w
+	}
 
 	// Graceful shutdown on SIGINT/SIGTERM
 	sigCh := make(chan os.Signal, 1)
@@ -37,12 +49,23 @@ func main() {
 
 	go func() {
 		<-sigCh
-		log.Println("Shutting down worker...")
-		w.Stop()
+		log.Println("Shutting down workers...")
+		for _, w := range workers {
+			w.Stop()
+		}
 	}()
 
-	log.Printf("Starting worker on task queue: %s", taskQueue)
-	if err := w.Run(worker.InterruptCh()); err != nil {
-		log.Fatalf("Worker failed: %v", err)
+	log.Printf("Starting %d worker(s) on task queue: %s", numWorkers, taskQueue)
+
+	var wg sync.WaitGroup
+	for i, w := range workers {
+		wg.Add(1)
+		go func(id int, w worker.Worker) {
+			defer wg.Done()
+			if err := w.Run(worker.InterruptCh()); err != nil {
+				log.Printf("Worker %d failed: %v", id, err)
+			}
+		}(i, w)
 	}
+	wg.Wait()
 }
