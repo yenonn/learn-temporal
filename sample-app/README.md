@@ -2,7 +2,7 @@
 
 A Go application demonstrating Temporal workflow orchestration with a realistic order processing pipeline.
 
-[image]{./image/temporal-example.png}
+![temporal-example](./image/temporal-example.png)
 
 ## Workflow Steps
 
