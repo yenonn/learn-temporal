@@ -2,6 +2,8 @@
 
 A Go application demonstrating Temporal workflow orchestration with a realistic order processing pipeline.
 
+[image]{./image/temporal-example.png}
+
 ## Workflow Steps
 
 1. **ValidateOrder** — checks items, customer info, and amounts
@@ -36,7 +38,7 @@ With custom flags:
 go run main.go --order-id=order-042 --customer-id=cust-456 --email=jane@example.com --amount=149.99
 ```
 
-**View in Temporal UI:** http://localhost:8233
+**View in Temporal UI:** <http://localhost:8233>
 
 ## Project Structure
 
